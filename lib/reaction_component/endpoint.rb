@@ -31,11 +31,17 @@ module ReactionComponent
       end
 
       @component.send(params['msg'])
+      @component.try(:after_message)
 
-      output = controller.new.render_to_string(
-        inline: '<% @component.instance_variable_set("@_view", self); @component.render_view %>',
-        locals: {:@component => @component}
-      )
+      erb = '<% @component.instance_variable_set("@_view", self); @component.render_view %>'
+
+      options = {inline: erb, locals: {:@component => @component}}
+
+      if controller.respond_to?(:render) # Rails 5
+        output = controller.render(options)
+      else
+        output = controller.new.render_to_string(options)
+      end
 
       [200, {"Content-Type" => "text/html"}, [output]]
     end

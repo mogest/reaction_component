@@ -15,8 +15,15 @@ module ReactionComponent
       "go(#{method.to_s.to_json})"
     end
 
+    def control_values
+      @_values
+    end
+
     def reaction_component_render
+      div "", id: "reaction-component-updated-values-#{@_token}", "data-json" => @_values.to_json
+
       script <<-JS.html_safe
+        const token = #{@_token.to_json};
         let store;
 
         function save() {
@@ -28,10 +35,10 @@ module ReactionComponent
           });
         }
 
-        function load(values) {
+        function load(updatedValues) {
           for (const key of Object.keys(store)) {
             $("#" + key).val(
-              values.hasOwnProperty(key) ? values[key] : store[key]
+              updatedValues.hasOwnProperty(key) ? updatedValues[key] : store[key]
             );
           }
         }
@@ -40,7 +47,7 @@ module ReactionComponent
           save();
 
           const data = new FormData();
-          data.append("token", "#{@_token}");
+          data.append("token", token);
           data.append("msg", msg);
           data.append("store", JSON.stringify(store));
 
@@ -53,8 +60,9 @@ module ReactionComponent
             .then(r => r.text())
             .then(text => {
               $("body").html(text);
-              const values = #{@_values.to_json};
-              load(values);
+
+              const updatedValues = $("#reaction-component-updated-values-" + token).data("json");
+              load(updatedValues);
             });
         }
       JS
