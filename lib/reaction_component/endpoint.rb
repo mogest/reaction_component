@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string'
+
 module ReactionComponent
   class Endpoint
     def initialize(app)
@@ -5,21 +7,37 @@ module ReactionComponent
     end
 
     def call(env)
-      # TODO : turn this into Rack middleware
+      request = Rack::Request.new(env)
+      params = request.params
 
-      @app.call(env)
-      return
-
-      @component = Marshal.load Rails.cache.read(params[:token])
-
-      if store = JSON.parse(params[:store])
-        @component.instance_variable_set("@values", WriteHash.new(store))
+      unless request.post?
+        return [405, nil, ['Invalid method']]
       end
 
-      @component.send(params[:msg])
-      @component.try(:post_message)
+      key = "reaction_component_#{params['token']}"
+      serialised_data = Rails.cache.read(key)
 
-      render inline: '<% @component.instance_variable_set("@_view", self); @component.view %>'
+      if serialised_data.nil?
+        return [404, {}, ['File not found']]
+      end
+
+      data = Marshal.load(serialised_data)
+
+      @component = data[:component]
+      controller = data[:controller_name].constantize
+
+      if store = JSON.parse(params['store'])
+        @component.instance_variable_set("@_values", WriteHash.new(store))
+      end
+
+      @component.send(params['msg'])
+
+      output = controller.new.render_to_string(
+        inline: '<% @component.instance_variable_set("@_view", self); @component.render_view %>',
+        locals: {:@component => @component}
+      )
+
+      [200, {"Content-Type" => "text/html"}, [output]]
     end
   end
 end

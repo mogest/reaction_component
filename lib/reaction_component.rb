@@ -1,6 +1,7 @@
 module ReactionComponent
 end
 
-include 'reaction_component/base'
-include 'reaction_component/write_hash'
-include 'reaction_component/version'
+require 'reaction_component/base'
+require 'reaction_component/endpoint'
+require 'reaction_component/write_hash'
+require 'reaction_component/version'

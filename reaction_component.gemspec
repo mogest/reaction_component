@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Roger Nesbitt", "Nick Johnstone"]
   s.email       = ["roger@seriousorange.com"]
   s.homepage    = "https://github.com/mogest/reaction_component"
-  s.summary     = %q{TODO}
-  s.description = %q{TODO}
+  s.summary     = %q{erg}
+  s.description = %q{so bad}
 
   s.required_ruby_version = '>= 2.0'
 

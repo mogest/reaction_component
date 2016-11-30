@@ -1,5 +1,7 @@
 module ReactionComponent
   class Base < ActionComponent::Base
+    after_render :reaction_component_render
+
     def initialize(*)
       super
 
@@ -7,7 +9,13 @@ module ReactionComponent
       @_token ||= SecureRandom.hex
     end
 
-    def post_view
+    private
+
+    def callback(method)
+      "go(#{method.to_s.to_json})"
+    end
+
+    def reaction_component_render
       script <<-JS.html_safe
         let store;
 
@@ -22,8 +30,6 @@ module ReactionComponent
 
         function load(values) {
           for (const key of Object.keys(store)) {
-            console.log(values.hasOwnProperty(key), values[key], store[key])
-
             $("#" + key).val(
               values.hasOwnProperty(key) ? values[key] : store[key]
             );
@@ -43,20 +49,26 @@ module ReactionComponent
             body: data,
           };
 
-          fetch("/endpoint", opts)
+          fetch("/reaction_component", opts)
             .then(r => r.text())
             .then(text => {
               $("body").html(text);
               const values = #{@_values.to_json};
-      console.log(values);
               load(values);
             });
         }
       JS
 
       fine = @_view
+      controller_name = @_view.controller.class.name
+
       @_view = nil
-      Store[@_token] = Marshal.dump(self)
+
+      data = {component: self, controller_name: controller_name}
+      key = "reaction_component_#{@_token}"
+
+      Rails.cache.write(key, Marshal.dump(data))
+
       @_values = {}
 
       @_view = fine
