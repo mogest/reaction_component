@@ -33,7 +33,9 @@ module ReactionComponent
       @component.send(params['msg'])
       @component.try(:after_message)
 
-      erb = '<% @component.instance_variable_set("@_view", self); @component.render_view %>'
+      new_values = @component.instance_variable_get("@_values")
+
+      erb = [new_values.to_json, '<% @component.instance_variable_set("@_view", self); @component.render_view %>'].join("\n")
 
       options = {inline: erb, locals: {:@component => @component}}
 

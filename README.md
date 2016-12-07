@@ -4,7 +4,7 @@ A work in progress.
 
 You'd be absolutely crazy to try to use this.
 
-You might be instead looking for github.com/mogest/action_component?
+You might be instead looking for https://github.com/mogest/action_component?
 
 ## OK, fine.
 
@@ -44,7 +44,6 @@ end
 
 ```ruby
 # app/controllers/counter_controller.rb
-
 
 class CounterController < ApplicationController
   def index
